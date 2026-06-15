@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.mobile_app"
-    compileSdk = 34  // Changé : flutter.compileSdkVersion → 34
+    compileSdk = 36  // Changé : flutter.compileSdkVersion → 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

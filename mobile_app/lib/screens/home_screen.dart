@@ -1,10 +1,11 @@
-// ÉCRAN PRINCIPAL (TEMPORAIRE)
-// Sera remplacé par la carte + signalement plus tard
+// ÉCRAN PRINCIPAL LIFENET
+// Version avec accès au signalement
 
 import 'package:flutter/material.dart';
 import 'package:mobile_app/config/app_colors.dart';
 import 'package:mobile_app/services/api_service.dart';
-import 'login_screen.dart';
+import 'package:mobile_app/screens/login_screen.dart';
+import 'package:mobile_app/screens/report_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -70,15 +71,23 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 48),
-              const Text(
-                'Prochaines étapes :\n\n'
-                '• Signalement photo + IA\n'
-                '• Carte des alertes\n'
-                '• Dashboard autorités',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
+
+              // Bouton pour signaler un danger
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ReportScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Signaler un danger'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.danger,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ),
             ],
