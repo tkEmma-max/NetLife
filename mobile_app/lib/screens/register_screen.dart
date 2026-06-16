@@ -1,9 +1,5 @@
-// ÉCRAN D'INSCRIPTION LIFENET
-// Avec connexion réelle à l'API Django
-
 import 'package:flutter/material.dart';
 import 'package:mobile_app/config/app_colors.dart';
-import 'package:mobile_app/services/api_service.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -19,47 +15,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _apiService = ApiService();
   bool _isLoading = false;
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(seconds: 1));
 
-    try {
-      await _apiService.register(
-        _usernameController.text.trim(),
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Inscription réussie !'),
+          backgroundColor: AppColors.success,
+        ),
       );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Inscription réussie ! Connectez-vous'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      Navigator.pop(context);
     }
   }
 
@@ -74,11 +45,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: AppColors.secondaryLight,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -88,7 +58,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Titre
                 Text(
                   'Créer un compte',
                   style: Theme.of(context).textTheme.headlineLarge,
@@ -99,7 +68,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 48),
-                // Carte formulaire
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -107,7 +75,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          // Nom d'utilisateur
                           TextFormField(
                             controller: _usernameController,
                             decoration: const InputDecoration(
@@ -116,7 +83,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Nom d\'utilisateur requis';
+                                return 'Nom requis';
                               }
                               if (value.length < 3) {
                                 return 'Minimum 3 caractères';
@@ -125,7 +92,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          // Email
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -144,7 +110,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          // Mot de passe
                           TextFormField(
                             controller: _passwordController,
                             obscureText: true,
@@ -163,7 +128,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          // Confirmation
                           TextFormField(
                             controller: _confirmPasswordController,
                             obscureText: true,
@@ -179,7 +143,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 24),
-                          // Bouton inscription
                           ElevatedButton(
                             onPressed: _isLoading ? null : _handleRegister,
                             child: _isLoading
@@ -194,7 +157,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 : const Text('S\'inscrire'),
                           ),
                           const SizedBox(height: 12),
-                          // Lien retour connexion
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);

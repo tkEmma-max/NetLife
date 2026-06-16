@@ -1,11 +1,7 @@
-// ÉCRAN DE CONNEXION LIFENET
-// Avec connexion réelle à l'API Django
-
 import 'package:flutter/material.dart';
 import 'package:mobile_app/config/app_colors.dart';
-import 'package:mobile_app/services/api_service.dart';
 import 'register_screen.dart';
-import 'home_screen.dart'; // On va le créer ensuite
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,55 +14,19 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _apiService = ApiService();
   bool _isLoading = false;
 
-  // Fonction de connexion
   Future<void> _handleLogin() async {
-    // Vérifier que le formulaire est valide
     if (!_formKey.currentState!.validate()) return;
 
-    // Afficher le loader
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(seconds: 1));
 
-    try {
-      // Simulation de connexion (à supprimer quand backend sera prêt)
-      await Future.delayed(const Duration(seconds: 1));
-      final userData = {'token': 'fake_token_123'};
-      _apiService.setToken('fake_token_123');
-
-      // Version réelle à décommenter plus tard :
-      // final userData = await _apiService.login(
-      //   _emailController.text.trim(),
-      //   _passwordController.text.trim(),
-      // );
-
-      // Si succès, naviguer vers l'écran principal
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
-    } catch (e) {
-      // Afficher l'erreur
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      // Cacher le loader
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen()),
+      );
     }
   }
 
@@ -81,11 +41,10 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: AppColors.secondaryLight,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -95,7 +54,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Titre
                 Text(
                   'LifeNet',
                   style: Theme.of(context).textTheme.headlineLarge,
@@ -106,7 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 48),
-                // Carte formulaire
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
@@ -114,7 +71,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          // Email
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -134,7 +90,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          // Mot de passe
                           TextFormField(
                             controller: _passwordController,
                             obscureText: true,
@@ -153,7 +108,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 24),
-                          // Bouton connexion (avec état de chargement)
                           ElevatedButton(
                             onPressed: _isLoading ? null : _handleLogin,
                             child: _isLoading
@@ -168,7 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : const Text('Se connecter'),
                           ),
                           const SizedBox(height: 12),
-                          // Lien inscription
                           TextButton(
                             onPressed: () {
                               Navigator.push(

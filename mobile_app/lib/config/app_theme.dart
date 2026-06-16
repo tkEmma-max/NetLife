@@ -1,6 +1,3 @@
-// THÈME GLOBAL LIFENET
-// Style : moderne, minimaliste, inspiré de Chariow / Fiverr
-
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
@@ -11,11 +8,10 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.background,
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
-      secondary: AppColors.accent,
-      error: AppColors.error,
+      secondary: AppColors.secondary,
+      error: AppColors.danger,
       surface: AppColors.surface,
     ),
-    // Typographie fine et élégante
     textTheme: const TextTheme(
       headlineLarge: TextStyle(
         fontSize: 28,
@@ -38,7 +34,6 @@ class AppTheme {
         color: AppColors.textSecondary,
       ),
     ),
-    // Style des champs de formulaire (minimaliste)
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.surface,
@@ -52,11 +47,10 @@ class AppTheme {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.error, width: 1),
+        borderSide: const BorderSide(color: AppColors.danger, width: 1),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
-    // Style des boutons (fins, élégants)
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
@@ -68,13 +62,11 @@ class AppTheme {
         elevation: 0,
       ),
     ),
-    // Style des boutons texte
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primary,
       ),
     ),
-    // Style des cartes (CardThemeData au lieu de CardTheme)
     cardTheme: const CardThemeData(
       color: AppColors.surface,
       elevation: 0,

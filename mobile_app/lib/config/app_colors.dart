@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Identité
-  static const Color primary = Color(0xFF006D5B);
-  static const Color primaryLight = Color(0xFFE8F3F1);
-  static const Color accent = Color(0xFF2D9CDB);
+  // Couleurs principales (Orange = urgence, Vert = environnement)
+  static const Color primary = Color(0xFFF97316);      // Orange vif
+  static const Color primaryDark = Color(0xFFEA580C);   // Orange foncé
+  static const Color secondary = Color(0xFF22C55E);     // Vert alerte
+  static const Color secondaryLight = Color(0xFFDCFCE7); // Vert clair
 
-  // États
-  static const Color danger = Color(0xFFEF4444);     // Rouge pour signalement
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color error = Color(0xFFEF4444);
-
-  // Fonds
-  static const Color background = Color(0xFFF5F7FA);
+  // Neutres
+  static const Color background = Color(0xFFF8FAFC);
   static const Color surface = Color(0xFFFFFFFF);
+  static const Color cardBackground = Color(0xFFFFFFFF);
 
   // Textes
-  static const Color textPrimary = Color(0xFF1A1F36);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color textTertiary = Color(0xFF9CA3AF);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF64748B);
+  static const Color textTertiary = Color(0xFF94A3B8);
+
+  // États
+  static const Color danger = Color(0xFFEF4444);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color success = Color(0xFF10B981);
+  static const Color info = Color(0xFF3B82F6);
+
+  // Badges et indicateurs
+  static const Color emergency = Color(0xFFEF4444);
+  static const Color emergencyLight = Color(0xFFFEE2E2);
 }
