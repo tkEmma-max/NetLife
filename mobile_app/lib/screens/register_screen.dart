@@ -1,10 +1,11 @@
 // ÉCRAN D'INSCRIPTION LIFENET
-// Avec connexion réelle à l'API Django
+// Version redesign avec nouvelle charte
 
 import 'package:flutter/material.dart';
 import 'package:mobile_app/config/app_colors.dart';
 import 'package:mobile_app/services/api_service.dart';
-import 'login_screen.dart';
+import 'package:mobile_app/widgets/custom_input.dart';
+import 'package:mobile_app/screens/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -25,21 +26,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       await _apiService.register(
-        _usernameController.text.trim(),
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
+        email: _emailController.text.trim(),
+        username: _usernameController.text.trim(),
+        password: _passwordController.text.trim(),
+        confirmPassword: _confirmPasswordController.text.trim(),
+        phoneNumber: '+237650000000',
+        role: 'CITIZEN',
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Inscription réussie ! Connectez-vous'),
+            content: Text('Inscription réussie !'),
             backgroundColor: AppColors.success,
           ),
         );
@@ -55,11 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -70,37 +68,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
+                // ----- LOGO -----
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  width: 72,
+                  height: 72,
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.forest,
-                    size: 48,
+                    size: 38,
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 24),
-                // Titre
+                const SizedBox(height: 20),
+
+                // ----- TITRE -----
                 Text(
                   'Créer un compte',
-                  style: Theme.of(context).textTheme.headlineLarge,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Rejoignez la communauté LifeNet',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  'Rejoignez la communauté NetLife',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
-                const SizedBox(height: 48),
-                // Carte formulaire
+                const SizedBox(height: 40),
+
+                // ----- FORMULAIRE -----
                 Card(
+                  elevation: 0,
+                  color: AppColors.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: AppColors.border.withOpacity(0.15),
+                      width: 1,
+                    ),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Form(
@@ -108,15 +127,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         children: [
                           // Nom d'utilisateur
-                          TextFormField(
+                          CustomInput(
+                            label: 'Nom d\'utilisateur',
+                            hint: 'Choisissez un pseudo',
+                            prefixIcon: Icons.person_outline,
                             controller: _usernameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Nom d\'utilisateur',
-                              prefixIcon: Icon(Icons.person_outline),
-                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Nom d\'utilisateur requis';
+                                return 'Nom requis';
                               }
                               if (value.length < 3) {
                                 return 'Minimum 3 caractères';
@@ -124,15 +142,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 18),
+
                           // Email
-                          TextFormField(
+                          CustomInput(
+                            label: 'Adresse email',
+                            hint: 'vous@exemple.com',
+                            prefixIcon: Icons.email_outlined,
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              prefixIcon: Icon(Icons.email_outlined),
-                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Email requis';
@@ -143,15 +161,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 18),
+
                           // Mot de passe
-                          TextFormField(
-                            controller: _passwordController,
+                          CustomInput(
+                            label: 'Mot de passe',
+                            hint: 'Minimum 6 caractères',
+                            prefixIcon: Icons.lock_outline,
                             obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Mot de passe',
-                              prefixIcon: Icon(Icons.lock_outline),
-                            ),
+                            controller: _passwordController,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Mot de passe requis';
@@ -162,15 +180,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
-                          // Confirmation
-                          TextFormField(
-                            controller: _confirmPasswordController,
+                          const SizedBox(height: 18),
+
+                          // Confirmation mot de passe
+                          CustomInput(
+                            label: 'Confirmer le mot de passe',
+                            hint: 'Retapez votre mot de passe',
+                            prefixIcon: Icons.lock_outline,
                             obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Confirmer le mot de passe',
-                              prefixIcon: Icon(Icons.lock_outline),
-                            ),
+                            controller: _confirmPasswordController,
                             validator: (value) {
                               if (value != _passwordController.text) {
                                 return 'Les mots de passe ne correspondent pas';
@@ -179,27 +197,72 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 24),
+
                           // Bouton inscription
-                          ElevatedButton(
-                            onPressed: _isLoading ? null : _handleRegister,
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _handleRegister,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 22,
+                                      width: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'S\'inscrire',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  )
-                                : const Text('S\'inscrire'),
+                            ),
                           ),
-                          const SizedBox(height: 12),
+
+                          const SizedBox(height: 16),
+
                           // Lien retour connexion
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Déjà un compte ? Se connecter'),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Déjà un compte ?',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.only(left: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'Se connecter',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

@@ -1,13 +1,12 @@
-// ÉCRAN DE SIGNALEMENT LIFENET
-// Prend une photo, récupère la position GPS, envoie au backend
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mobile_app/config/app_colors.dart';
-import 'package:mobile_app/services/api_service.dart';
+import 'alerts_screen.dart';
+import 'notifications_screen.dart';
+import 'profile_screen.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -22,65 +21,48 @@ class _ReportScreenState extends State<ReportScreen> {
   bool _isLoading = false;
   bool _isGettingLocation = false;
   final ImagePicker _picker = ImagePicker();
-  final ApiService _apiService = ApiService();
+  final TextEditingController _descriptionController = TextEditingController();
 
-  // Prendre une photo
   Future<void> _takePhoto() async {
     final XFile? photo = await _picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 80,
     );
-
     if (photo != null) {
-      setState(() {
-        _selectedImage = File(photo.path);
-      });
+      setState(() => _selectedImage = File(photo.path));
       await _getLocation();
     }
   }
 
-  // Choisir depuis la galerie
   Future<void> _pickFromGallery() async {
     final XFile? photo = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 80,
     );
-
     if (photo != null) {
-      setState(() {
-        _selectedImage = File(photo.path);
-      });
+      setState(() => _selectedImage = File(photo.path));
       await _getLocation();
     }
   }
 
-  // Récupérer la position GPS
   Future<void> _getLocation() async {
-    setState(() {
-      _isGettingLocation = true;
-    });
+    setState(() => _isGettingLocation = true);
 
-    // Vérifier les permissions
     final status = await Permission.location.request();
     if (!status.isGranted) {
-      setState(() {
-        _isGettingLocation = false;
-      });
+      setState(() => _isGettingLocation = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Permission de localisation refusée'),
-          backgroundColor: AppColors.error,
+          backgroundColor: AppColors.danger,
         ),
       );
       return;
     }
 
-    // Vérifier si GPS activé
     final enabled = await Geolocator.isLocationServiceEnabled();
     if (!enabled) {
-      setState(() {
-        _isGettingLocation = false;
-      });
+      setState(() => _isGettingLocation = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Veuillez activer le GPS'),
@@ -94,19 +76,14 @@ class _ReportScreenState extends State<ReportScreen> {
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      setState(() {
-        _currentPosition = position;
-      });
+      setState(() => _currentPosition = position);
     } catch (e) {
       print('Erreur GPS: $e');
     }
 
-    setState(() {
-      _isGettingLocation = false;
-    });
+    setState(() => _isGettingLocation = false);
   }
 
-  // Envoyer le signalement
   Future<void> _submitReport() async {
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -128,11 +105,7 @@ class _ReportScreenState extends State<ReportScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    // TODO: Envoyer au backend avec l'IA
+    setState(() => _isLoading = true);
     await Future.delayed(const Duration(seconds: 2));
 
     if (mounted) {
@@ -142,13 +115,10 @@ class _ReportScreenState extends State<ReportScreen> {
           backgroundColor: AppColors.success,
         ),
       );
-
       Navigator.pop(context);
     }
 
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -169,6 +139,7 @@ class _ReportScreenState extends State<ReportScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ----- TITRE -----
             Text(
               'Photo du danger',
               style: Theme.of(context).textTheme.headlineMedium,
@@ -180,11 +151,9 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Zone photo
+            // ----- ZONE PHOTO -----
             GestureDetector(
-              onTap: () {
-                _showImageSourceDialog();
-              },
+              onTap: () => _showImageSourceDialog(),
               child: Container(
                 width: double.infinity,
                 height: 250,
@@ -192,7 +161,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.primaryLight,
+                    color: AppColors.secondaryLight,
                     width: 2,
                   ),
                 ),
@@ -228,7 +197,26 @@ class _ReportScreenState extends State<ReportScreen> {
 
             const SizedBox(height: 24),
 
-            // Position GPS
+            // ----- DESCRIPTION -----
+            TextField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Description (optionnelle)',
+                hintText: 'Décrivez la situation...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: AppColors.surface,
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ----- POSITION GPS -----
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -282,7 +270,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
             const SizedBox(height: 32),
 
-            // Bouton envoyer
+            // ----- BOUTON ENVOYER -----
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -304,6 +292,67 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.surface,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textTertiary,
+        currentIndex: 2,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pop(context);
+              break;
+            case 1:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const AlertsScreen()),
+              );
+              break;
+            case 2:
+              break;
+            case 3:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+              );
+              break;
+            case 4:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Accueil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.warning_amber_outlined),
+            activeIcon: Icon(Icons.warning_amber),
+            label: 'Alertes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_outline, size: 32),
+            activeIcon: Icon(Icons.add_circle, size: 32),
+            label: 'Signaler',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_outlined),
+            activeIcon: Icon(Icons.notifications),
+            label: 'Notif.',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profil',
+          ),
+        ],
       ),
     );
   }
