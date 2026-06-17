@@ -5,6 +5,10 @@ import 'package:mobile_app/widgets/statistic_card.dart';
 import 'package:mobile_app/widgets/alert_card.dart';
 import 'package:mobile_app/widgets/incident_map.dart';
 import 'package:mobile_app/screens/report_screen.dart';
+import 'alerts_screen.dart';
+import 'report_screen.dart';
+import 'notifications_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -49,17 +53,40 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _selectedIndex = 0;
 
-  void _onNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ReportScreen()),
-      );
-    }
-  }
+ void _onNavTap(int index) {
+   setState(() {
+     _selectedIndex = index;
+   });
+   switch (index) {
+     case 0:
+       // Accueil (déjà sur cette page)
+       break;
+     case 1:
+       Navigator.push(
+         context,
+         MaterialPageRoute(builder: (_) => const AlertsScreen()),
+       );
+       break;
+     case 2:
+       Navigator.push(
+         context,
+         MaterialPageRoute(builder: (_) => const ReportScreen()),
+       );
+       break;
+     case 3:
+       Navigator.push(
+         context,
+         MaterialPageRoute(builder: (_) => NotificationsScreen()),
+       );
+       break;
+     case 4:
+       Navigator.push(
+         context,
+         MaterialPageRoute(builder: (_) => const ProfileScreen()),
+       );
+       break;
+   }
+ }
 
   @override
   Widget build(BuildContext context) {

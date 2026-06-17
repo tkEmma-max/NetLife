@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Couleurs principales (Orange = urgence, Vert = environnement)
-  static const Color primary = Color(0xFFF97316);      // Orange vif
-  static const Color primaryDark = Color(0xFFEA580C);   // Orange foncé
-  static const Color secondary = Color(0xFF22C55E);     // Vert alerte
-  static const Color secondaryLight = Color(0xFFDCFCE7); // Vert clair
+  // Dominante (60%) - Fond
+  static const Color background = Color(0xFFF8F9FA);
 
-  // Neutres
-  static const Color background = Color(0xFFF8FAFC);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color cardBackground = Color(0xFFFFFFFF);
+  // Secondaire (30%) - Vert Émeraude (identité, nature)
+  static const Color primary = Color(0xFF059669);
+  static const Color primaryLight = Color(0xFFD1FAE5);
+  static const Color primaryDark = Color(0xFF047857);
 
-  // Textes
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textTertiary = Color(0xFF94A3B8);
+  // Gris (structure)
+  static const Color border = Color(0xFF9CA3AF);
+  static const Color textSecondary = Color(0xFF6B7280);
+  static const Color textTertiary = Color(0xFF9CA3AF);
+
+  // Noir (lisibilité)
+  static const Color textPrimary = Color(0xFF111827);
+
+  // Accent (10%) - Orange Alerte (urgence uniquement)
+  static const Color danger = Color(0xFFF97316);
+  static const Color dangerLight = Color(0xFFFFEDD5);
 
   // États
-  static const Color danger = Color(0xFFEF4444);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color success = Color(0xFF10B981);
-  static const Color info = Color(0xFF3B82F6);
+  static const Color success = Color(0xFF059669);
+  static const Color warning = Color(0xFFF97316);
+  static const Color error = Color(0xFFEF4444);
 
-  // Badges et indicateurs
-  static const Color emergency = Color(0xFFEF4444);
-  static const Color emergencyLight = Color(0xFFFEE2E2);
+  // Surface
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceElevated = Color(0xFFFFFFFF);
 }

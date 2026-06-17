@@ -1,5 +1,5 @@
 // CARTE INTERACTIVE LIFENET
-// Affiche les incidents sur une carte OpenStreetMap
+// S'adapte à la position de l'utilisateur
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -11,6 +11,7 @@ class IncidentMap extends StatelessWidget {
   final double height;
   final double? latitude;
   final double? longitude;
+  final double zoom;
 
   const IncidentMap({
     super.key,
@@ -18,28 +19,20 @@ class IncidentMap extends StatelessWidget {
     this.height = 200,
     this.latitude,
     this.longitude,
+    this.zoom = 14,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Position par défaut : Douala, Cameroun
+    // Si on a la position de l'utilisateur, on centre sur elle
+    // Sinon, on centre sur Douala (fallback)
     final centerLat = latitude ?? 4.0511;
     final centerLon = longitude ?? 9.7679;
 
-    // Points pour la carte
-    final markers = incidents.map((incident) {
-      return Marker(
-        point: LatLng(
-          incident['lat'] ?? centerLat,
-          incident['lon'] ?? centerLon,
-        ),
-        width: 40,
-        height: 40,
-        child: _buildMarker(incident),
-      );
-    }).toList();
+    // Construire les marqueurs des incidents
+    final markers = <Marker>[];
 
-    // Ajouter un marqueur pour la position de l'utilisateur
+    // Marqueur pour la position de l'utilisateur
     if (latitude != null && longitude != null) {
       markers.add(
         Marker(
@@ -68,6 +61,61 @@ class IncidentMap extends StatelessWidget {
       );
     }
 
+    // Marqueurs pour les incidents
+    for (var incident in incidents) {
+      final lat = incident['lat'] as double?;
+      final lon = incident['lon'] as double?;
+      if (lat == null || lon == null) continue;
+
+      final gravity = incident['gravity'] ?? 3;
+      Color markerColor;
+
+      if (gravity >= 4) {
+        markerColor = AppColors.danger;
+      } else if (gravity >= 3) {
+        markerColor = AppColors.warning;
+      } else {
+        markerColor = AppColors.success;
+      }
+
+      final type = incident['type'] as String? ?? '?';
+      final label = type.isNotEmpty ? type.substring(0, 1).toUpperCase() : '?';
+
+      markers.add(
+        Marker(
+          point: LatLng(lat, lon),
+          width: 32,
+          height: 32,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: markerColor.withOpacity(0.9),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: markerColor.withOpacity(0.4),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
       height: height,
       decoration: BoxDecoration(
@@ -81,7 +129,7 @@ class IncidentMap extends StatelessWidget {
       child: FlutterMap(
         options: MapOptions(
           initialCenter: LatLng(centerLat, centerLon),
-          initialZoom: 12,
+          initialZoom: zoom,
           interactionOptions: const InteractionOptions(
             flags: InteractiveFlag.all,
           ),
@@ -93,46 +141,6 @@ class IncidentMap extends StatelessWidget {
           ),
           MarkerLayer(markers: markers),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMarker(Map<String, dynamic> incident) {
-    final gravity = incident['gravity'] ?? 3;
-    Color markerColor;
-
-    if (gravity >= 4) {
-      markerColor = AppColors.danger;
-    } else if (gravity >= 3) {
-      markerColor = AppColors.warning;
-    } else {
-      markerColor = AppColors.success;
-    }
-
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: markerColor.withOpacity(0.9),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: markerColor.withOpacity(0.4),
-            blurRadius: 12,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          incident['type']?.substring(0, 1).toUpperCase() ?? '?',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
       ),
     );
   }

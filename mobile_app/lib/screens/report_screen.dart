@@ -4,6 +4,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:mobile_app/config/app_colors.dart';
+import 'alerts_screen.dart';
+import 'notifications_screen.dart';
+import 'profile_screen.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -18,6 +21,7 @@ class _ReportScreenState extends State<ReportScreen> {
   bool _isLoading = false;
   bool _isGettingLocation = false;
   final ImagePicker _picker = ImagePicker();
+  final TextEditingController _descriptionController = TextEditingController();
 
   Future<void> _takePhoto() async {
     final XFile? photo = await _picker.pickImage(
@@ -135,6 +139,7 @@ class _ReportScreenState extends State<ReportScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ----- TITRE -----
             Text(
               'Photo du danger',
               style: Theme.of(context).textTheme.headlineMedium,
@@ -145,6 +150,8 @@ class _ReportScreenState extends State<ReportScreen> {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
+
+            // ----- ZONE PHOTO -----
             GestureDetector(
               onTap: () => _showImageSourceDialog(),
               child: Container(
@@ -153,7 +160,10 @@ class _ReportScreenState extends State<ReportScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.secondaryLight, width: 2),
+                  border: Border.all(
+                    color: AppColors.secondaryLight,
+                    width: 2,
+                  ),
                 ),
                 child: _selectedImage != null
                     ? ClipRRect(
@@ -176,13 +186,37 @@ class _ReportScreenState extends State<ReportScreen> {
                           const SizedBox(height: 12),
                           Text(
                             'Appuyez pour prendre une photo',
-                            style: TextStyle(color: AppColors.textSecondary),
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ],
                       ),
               ),
             ),
+
             const SizedBox(height: 24),
+
+            // ----- DESCRIPTION -----
+            TextField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Description (optionnelle)',
+                hintText: 'Décrivez la situation...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: AppColors.surface,
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ----- POSITION GPS -----
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -233,7 +267,10 @@ class _ReportScreenState extends State<ReportScreen> {
                 ],
               ),
             ),
+
             const SizedBox(height: 32),
+
+            // ----- BOUTON ENVOYER -----
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -255,6 +292,67 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.surface,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textTertiary,
+        currentIndex: 2,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pop(context);
+              break;
+            case 1:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const AlertsScreen()),
+              );
+              break;
+            case 2:
+              break;
+            case 3:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+              );
+              break;
+            case 4:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              );
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Accueil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.warning_amber_outlined),
+            activeIcon: Icon(Icons.warning_amber),
+            label: 'Alertes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_outline, size: 32),
+            activeIcon: Icon(Icons.add_circle, size: 32),
+            label: 'Signaler',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_outlined),
+            activeIcon: Icon(Icons.notifications),
+            label: 'Notif.',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profil',
+          ),
+        ],
       ),
     );
   }
