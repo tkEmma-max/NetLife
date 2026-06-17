@@ -1,0 +1,92 @@
+<!-- accounts/templates/accounts/register_success.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription réussie - NetLife</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00C851 0%, #007E33 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .success-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .success-container .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .success-container h1 {
+            color: #2C3E50;
+            margin-bottom: 10px;
+        }
+
+        .success-container p {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .btn-dashboard {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-dashboard:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="icon">🎉</div>
+        <h1>Inscription réussie !</h1>
+        <p>Bienvenue sur NetLife, {{ user.username }} !</p>
+
+        <div class="user-info">
+            <div><strong>👤 Utilisateur :</strong> {{ user.username }}</div>
+            <div><strong>📧 Email :</strong> {{ user.email }}</div>
+            <div><strong>🎭 Rôle :</strong> {{ user.get_role_display }}</div>
+        </div>
+
+        <a href="/api/accounts/login/" class="btn-dashboard">
+            🔐 Se connecter
+        </a>
+    </div>
+</body>
+</html>
