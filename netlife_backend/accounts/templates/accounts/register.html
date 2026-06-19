@@ -1,0 +1,208 @@
+<!-- accounts/templates/accounts/register.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .register-container h1 {
+            color: #2C3E50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .register-container .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2C3E50;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group .error {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00C851 0%, #007E33 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #e74c3c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #e74c3c;
+            font-size: 14px;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h1>🌍 NetLife</h1>
+        <p class="subtitle">Créer un compte</p>
+
+        {% if errors %}
+        <div class="error-message">
+            ❌ Veuillez corriger les erreurs ci-dessous
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_username">👤 Nom d'utilisateur</label>
+                <input type="text" id="id_username" name="username"
+                       value="{{ form_data.username|default:'' }}"
+                       placeholder="Choisissez un nom" required>
+                {% if errors.username %}
+                <span class="error">{{ errors.username }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_email">📧 Email</label>
+                <input type="email" id="id_email" name="email"
+                       value="{{ form_data.email|default:'' }}"
+                       placeholder="exemple@email.com" required>
+                {% if errors.email %}
+                <span class="error">{{ errors.email }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_phone">📱 Téléphone</label>
+                <input type="tel" id="id_phone" name="phone_number"
+                       value="{{ form_data.phone_number|default:'' }}"
+                       placeholder="+237 650 123 456">
+            </div>
+
+            <div class="form-group">
+                <label for="id_role">🎭 Rôle</label>
+                <select id="id_role" name="role">
+                    <option value="CITIZEN" selected>Citoyen</option>
+                    <option value="AUTHORITY">Autorité</option>
+                    <option value="INTERVENTION_TEAM">Équipe d'intervention</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password">🔒 Mot de passe</label>
+                <input type="password" id="id_password" name="password"
+                       placeholder="Au moins 8 caractères" required>
+                {% if errors.password %}
+                <span class="error">{{ errors.password }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_confirm_password">✅ Confirmer le mot de passe</label>
+                <input type="password" id="id_confirm_password" name="confirm_password"
+                       placeholder="Répétez le mot de passe" required>
+                {% if errors.confirm_password %}
+                <span class="error">{{ errors.confirm_password }}</span>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-register">
+                🚀 S'inscrire
+            </button>
+        </form>
+
+        <div class="login-link">
+            Déjà un compte ? <a href="/api/accounts/login/">Se connecter</a>
+        </div>
+    </div>
+</body>
+</html>

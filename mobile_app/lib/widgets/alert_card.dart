@@ -1,6 +1,3 @@
-// WIDGET ALERTE À PROXIMITÉ
-// Affiche une alerte avec type, lieu, gravité, heure
-
 import 'package:flutter/material.dart';
 import 'package:mobile_app/config/app_colors.dart';
 
@@ -10,6 +7,7 @@ class AlertCard extends StatelessWidget {
   final String gravity;
   final String time;
   final String status;
+  final String? teamName;
   final VoidCallback onTap;
 
   const AlertCard({
@@ -19,18 +17,19 @@ class AlertCard extends StatelessWidget {
     required this.gravity,
     required this.time,
     required this.status,
+    this.teamName,
     required this.onTap,
   });
 
   Color _getGravityColor() {
     switch (gravity.toLowerCase()) {
-      case 'critique':
+      case 'critical':
         return AppColors.danger;
-      case 'élevé':
-        return AppColors.warning;
-      case 'modéré':
-        return AppColors.info;
-      case 'faible':
+      case 'high':
+        return const Color(0xFFF97316);
+      case 'medium':
+        return const Color(0xFFF59E0B);
+      case 'low':
         return AppColors.success;
       default:
         return AppColors.textSecondary;
@@ -39,13 +38,11 @@ class AlertCard extends StatelessWidget {
 
   IconData _getTypeIcon() {
     switch (type.toLowerCase()) {
-      case 'feu':
-      case 'feu de brousse':
+      case 'fire':
         return Icons.local_fire_department;
-      case 'inondation':
+      case 'flood':
         return Icons.water_drop;
-      case 'déchet':
-      case 'déchet sauvage':
+      case 'waste':
         return Icons.delete_outline;
       case 'pollution':
         return Icons.warning_amber_outlined;
@@ -64,13 +61,12 @@ class AlertCard extends StatelessWidget {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.textTertiary.withOpacity(0.1),
+            color: AppColors.border.withOpacity(0.15),
             width: 1,
           ),
         ),
         child: Row(
           children: [
-            // Icône du type
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -84,7 +80,6 @@ class AlertCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 16),
-            // Informations
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,35 +139,30 @@ class AlertCard extends StatelessWidget {
                           color: AppColors.textTertiary,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
+                      if (teamName != null) ...[
+                        const SizedBox(width: 12),
+                        const Icon(
+                          Icons.people,
+                          size: 14,
+                          color: AppColors.textTertiary,
                         ),
-                        decoration: BoxDecoration(
-                          color: status == 'en cours'
-                              ? AppColors.warning.withOpacity(0.15)
-                              : AppColors.success.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          status,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            color: status == 'en cours'
-                                ? AppColors.warning
-                                : AppColors.success,
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            teamName!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textTertiary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ],
               ),
             ),
-            // Flèche "Voir plus"
             Icon(
               Icons.chevron_right,
               color: AppColors.textTertiary,

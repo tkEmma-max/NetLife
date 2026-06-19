@@ -1,0 +1,182 @@
+<!-- accounts/templates/accounts/login.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - NetLife</title>
+    <style>
+        /* Styles pour un formulaire propre */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .login-container h1 {
+            color: #2C3E50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .login-container .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2C3E50;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: #fee;
+            color: #e74c3c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #e74c3c;
+            font-size: 14px;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .api-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ecf0f1;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .api-info code {
+            background: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>🌍 NetLife</h1>
+        <p class="subtitle">Connexion à la plateforme</p>
+
+        {% if error %}
+        <div class="error-message">
+            ❌ {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_email">📧 Email</label>
+                <input type="email" id="id_email" name="email"
+                       placeholder="exemple@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password">🔒 Mot de passe</label>
+                <input type="password" id="id_password" name="password"
+                       placeholder="Votre mot de passe" required>
+            </div>
+
+            <button type="submit" class="btn-login">
+                🔐 Se connecter
+            </button>
+        </form>
+
+        <div class="register-link">
+            Pas encore de compte ? <a href="/api/accounts/register/">S'inscrire</a>
+        </div>
+
+        <div class="api-info">
+            <strong>📱 Pour l'API / Flutter :</strong><br>
+            Utilisez <code>POST /api/accounts/login/</code> avec JSON :
+            <br><code>{"email": "user@email.com", "password": "..."}</code>
+        </div>
+    </div>
+</body>
+</html>

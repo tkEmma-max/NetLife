@@ -47,26 +47,18 @@ class ApiService {
   // ----- AUTHENTIFICATION -----
 
   Future<Map<String, dynamic>> login(String email, String password) async {
-    print('=== LOGIN REQUEST ===');
-    print('Email: $email');
-    print('URL: ${AppConstants.baseUrl}/accounts/login/');
-
     final response = await http.post(
       Uri.parse('${AppConstants.baseUrl}/accounts/login/'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
 
-    print('=== LOGIN RESPONSE ===');
-    print('Status: ${response.statusCode}');
-    print('Body: ${response.body}');
-
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       await saveTokens(data['access'], data['refresh']);
       return data;
     } else {
-      throw Exception('Échec de la connexion: ${response.body}');
+      throw Exception('Échec de la connexion');
     }
   }
 
@@ -78,16 +70,6 @@ class ApiService {
     String? phoneNumber,
     String role = 'CITIZEN',
   }) async {
-    // Afficher ce qu'on envoie dans les logs
-    print('=== REGISTER REQUEST ===');
-    print('Email: $email');
-    print('Username: $username');
-    print('Password: $password');
-    print('Confirm: $confirmPassword');
-    print('Phone: $phoneNumber');
-    print('Role: $role');
-    print('URL: ${AppConstants.baseUrl}/accounts/register/');
-
     final response = await http.post(
       Uri.parse('${AppConstants.baseUrl}/accounts/register/'),
       headers: {'Content-Type': 'application/json'},
@@ -101,16 +83,12 @@ class ApiService {
       }),
     );
 
-    print('=== REGISTER RESPONSE ===');
-    print('Status: ${response.statusCode}');
-    print('Body: ${response.body}');
-
     if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
       await saveTokens(data['access'], data['refresh']);
       return data;
     } else {
-      throw Exception('Échec de l\'inscription: ${response.body}');
+      throw Exception('Échec de l\'inscription');
     }
   }
 
@@ -129,6 +107,19 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception('Impossible de charger le profil');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) async {
+    final response = await http.patch(
+      Uri.parse('${AppConstants.baseUrl}/accounts/profile/'),
+      headers: _headers,
+      body: jsonEncode(data),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Impossible de mettre à jour le profil');
     }
   }
 
@@ -166,7 +157,7 @@ class ApiService {
     if (response.statusCode == 201) {
       return data;
     } else {
-      throw Exception('Échec de l\'envoi du signalement');
+      throw Exception('Échec de l\'envoi du signalement: ${data['error'] ?? responseBody}');
     }
   }
 
@@ -194,20 +185,6 @@ class ApiService {
     }
   }
 
-  // ----- ANALYSE IA -----
-
-  Future<Map<String, dynamic>> getAIAnalysis(int reportId) async {
-    final response = await http.get(
-      Uri.parse('${AppConstants.baseUrl}/ai/analysis/$reportId/'),
-      headers: _headers,
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Analyse IA non disponible');
-    }
-  }
-
   // ----- ALERTES -----
 
   Future<List<dynamic>> getActiveAlerts() async {
@@ -222,10 +199,10 @@ class ApiService {
     }
   }
 
-  Future<List<dynamic>> getNearbyAlerts(
-    double latitude,
-    double longitude, {
-    double radius = 5,
+  Future<List<dynamic>> getNearbyAlerts({
+    required double latitude,
+    required double longitude,
+    double radius = 10,
   }) async {
     final response = await http.get(
       Uri.parse(
@@ -237,6 +214,77 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> getAlertDetail(int id) async {
+    final response = await http.get(
+      Uri.parse('${AppConstants.baseUrl}/alerts/$id/'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Impossible de charger le détail de l\'alerte');
+    }
+  }
+
+  // ----- INTERVENTIONS -----
+
+  Future<List<dynamic>> getActiveInterventions() async {
+    final response = await http.get(
+      Uri.parse('${AppConstants.baseUrl}/interventions/active/'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return [];
+    }
+  }
+
+  // ----- ANALYSE IA -----
+
+  Future<Map<String, dynamic>> analyzeReport(int reportId) async {
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/ai/analyze/$reportId/'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Impossible de lancer l\'analyse IA');
+    }
+  }
+
+  Future<Map<String, dynamic>> getAIAnalysis(int reportId) async {
+    final response = await http.get(
+      Uri.parse('${AppConstants.baseUrl}/ai/analysis/$reportId/'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Analyse IA non disponible');
+    }
+  }
+
+  // ----- DASHBOARD -----
+
+  Future<Map<String, dynamic>> getDashboardStats() async {
+    final response = await http.get(
+      Uri.parse('${AppConstants.baseUrl}/dashboard/stats/'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      return {
+        'total_reports': 0,
+        'resolved_incidents': 0,
+        'active_alerts': 0,
+        'total_citizens': 0,
+      };
     }
   }
 

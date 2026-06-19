@@ -1,163 +1,289 @@
-from django.shortcuts import render
+# accounts/views.py
+# ============================================
+# AJOUTER CETTE CLASSE AU DÉBUT DU FICHIER
+# ============================================
 
-# Create your views here.
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from django.db.models import Q
+from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import render, redirect
+from django.contrib.auth import login as auth_login
 from .models import User
 from .serializers import (
-    UserRegistrationSerializer, UserProfileSerializer,
-    UserUpdateSerializer, ChangePasswordSerializer
+    UserRegistrationSerializer,
+    UserProfileSerializer,
+    UserUpdateSerializer,
+    ChangePasswordSerializer
 )
+from django.utils import timezone  # ⬅️ AJOUTER CETTE LIGNE
 
+
+# ============================================
+# CLASSE 1: RegisterView (INSCRIPTION)
+# ============================================
 
 class RegisterView(generics.CreateAPIView):
     """
-    User Registration API Endpoint
+    Vue d'inscription pour les nouveaux utilisateurs.
 
-    Flutter sends: POST /api/accounts/register/
-    {
-        "email": "marie@gmail.com",
-        "username": "marie123",
-        "password": "SecurePass123",
-        "confirm_password": "SecurePass123",
-        "phone_number": "+237650123456",
-        "role": "CITIZEN"
-    }
+    Supporte à la fois JSON et formulaire HTML.
 
-    Returns:
-    {
-        "user": { user data },
-        "refresh": "JWT refresh token",
-        "access": "JWT access token"
-    }
+    UTILISATION AVEC FORMULAIRE (Navigateur):
+        GET /api/accounts/register/ → Affiche le formulaire
+        POST /api/accounts/register/ → Soumet le formulaire
+
+    UTILISATION AVEC JSON (API/Flutter):
+        POST /api/accounts/register/
+        {
+            "email": "user@example.com",
+            "username": "user123",
+            "password": "monpassword",
+            "confirm_password": "monpassword",
+            "phone_number": "+237650123456",
+            "role": "CITIZEN"
+        }
     """
 
     queryset = User.objects.all()
-    permission_classes = (permissions.AllowAny,)  # Anyone can register
+    permission_classes = (permissions.AllowAny,)
     serializer_class = UserRegistrationSerializer
 
+    def get(self, request):
+        """
+        Affiche le formulaire d'inscription pour le navigateur.
+        """
+        return render(request, 'accounts/register.html', {
+            'title': 'Inscription - NetLife'
+        })
+
     def post(self, request, *args, **kwargs):
-        # Validate and create user
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        """
+        Gère l'inscription via formulaire OU JSON.
+        """
 
-        # Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
+        # ============================================
+        # CAS 1: Soumission depuis le formulaire HTML
+        # ============================================
+        if request.content_type == 'application/x-www-form-urlencoded':
+            # Récupérer les données du formulaire
+            email = request.POST.get('email')
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+            phone_number = request.POST.get('phone_number', '')
+            role = request.POST.get('role', 'CITIZEN')
 
-        return Response({
-            'user': UserProfileSerializer(user).data,
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }, status=status.HTTP_201_CREATED)
+            # Valider les champs
+            errors = {}
 
+            if not email:
+                errors['email'] = 'L\'email est requis'
+            elif User.objects.filter(email=email).exists():
+                errors['email'] = 'Cet email est déjà utilisé'
+
+            if not username:
+                errors['username'] = 'Le nom d\'utilisateur est requis'
+            elif User.objects.filter(username=username).exists():
+                errors['username'] = 'Ce nom d\'utilisateur est déjà utilisé'
+
+            if not password:
+                errors['password'] = 'Le mot de passe est requis'
+            elif len(password) < 8:
+                errors['password'] = 'Le mot de passe doit contenir au moins 8 caractères'
+            elif password != confirm_password:
+                errors['confirm_password'] = 'Les mots de passe ne correspondent pas'
+
+            if errors:
+                return render(request, 'accounts/register.html', {
+                    'errors': errors,
+                    'form_data': request.POST
+                })
+
+            # Créer l'utilisateur
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                phone_number=phone_number,
+                role=role
+            )
+
+            # Connecter l'utilisateur automatiquement
+            auth_login(request, user)
+
+            # Générer les tokens JWT
+            refresh = RefreshToken.for_user(user)
+
+            # Rediriger vers la page de succès
+            return render(request, 'accounts/register_success.html', {
+                'user': user,
+                'access_token': str(refresh.access_token),
+                'refresh_token': str(refresh)
+            })
+
+        # ============================================
+        # CAS 2: Requête JSON (Flutter / API)
+        # ============================================
+        else:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+
+            # Générer les tokens JWT
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                'user': UserProfileSerializer(user).data,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_201_CREATED)
+
+
+# ============================================
+# CLASSE 2: LoginView (CONNEXION)
+# ============================================
 
 class LoginView(APIView):
     """
-    User Login API Endpoint
+    Vue de login supportant à la fois JSON et formulaire HTML.
 
-    Flutter sends: POST /api/accounts/login/
-    {
-        "email": "marie@gmail.com",
-        "password": "SecurePass123"
-    }
+    UTILISATION AVEC FORMULAIRE (Navigateur):
+        GET /api/accounts/login/ → Affiche le formulaire
+        POST /api/accounts/login/ → Soumet le formulaire
 
-    Returns:
-    {
-        "user": { user data },
-        "refresh": "JWT refresh token",
-        "access": "JWT access token"
-    }
+    UTILISATION AVEC JSON (API/Flutter):
+        POST /api/accounts/login/
+        {
+            "email": "user@example.com",
+            "password": "monpassword"
+        }
     """
 
     permission_classes = (permissions.AllowAny,)
 
+    def get(self, request):
+        """
+        Affiche le formulaire de login pour le navigateur.
+        """
+        return render(request, 'accounts/login.html', {
+            'title': 'Connexion - NetLife'
+        })
+
     def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
+        """
+        Gère la soumission du formulaire OU du JSON.
+        """
 
-        # Validate input
-        if not email or not password:
-            return Response({
-                'error': 'Please provide both email and password'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        # ============================================
+        # CAS 1: Soumission depuis le formulaire HTML
+        # ============================================
+        if request.content_type == 'application/x-www-form-urlencoded':
+            email = request.POST.get('email')
+            password = request.POST.get('password')
 
-        # Authenticate using email (our custom authentication)
-        user = authenticate(request, username=email, password=password)
+            # Valider les champs
+            if not email or not password:
+                return render(request, 'accounts/login.html', {
+                    'error': 'Veuillez remplir tous les champs'
+                })
 
-        # If email auth fails, try username (backward compatibility)
-        if user is None:
+            # Authentifier l'utilisateur
             user = authenticate(request, username=email, password=password)
 
-        if user:
-            # Check if user is active
+            if user is None:
+                return render(request, 'accounts/login.html', {
+                    'error': 'Email ou mot de passe incorrect'
+                })
+
+            # Vérifier si le compte est actif
             if not user.is_active:
-                return Response({
-                    'error': 'Your account has been deactivated'
-                }, status=status.HTTP_403_FORBIDDEN)
+                return render(request, 'accounts/login.html', {
+                    'error': 'Votre compte a été désactivé'
+                })
 
-            # Generate tokens
-            refresh = RefreshToken.for_user(user)
+            # Connecter l'utilisateur
+            auth_login(request, user)
 
-            # Update last active timestamp
+            # Mettre à jour la dernière connexion
             user.last_active = timezone.now()
             user.save()
+
+            # Générer les tokens JWT
+            refresh = RefreshToken.for_user(user)
+
+            # Afficher la page de succès
+            return render(request, 'accounts/login_success.html', {
+                'user': user,
+                'access_token': str(refresh.access_token),
+                'refresh_token': str(refresh)
+            })
+
+        # ============================================
+        # CAS 2: Requête JSON (Flutter / API)
+        # ============================================
+        else:
+            email = request.data.get('email')
+            password = request.data.get('password')
+
+            if not email or not password:
+                return Response({
+                    'error': 'Veuillez fournir email et mot de passe'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            user = authenticate(request, username=email, password=password)
+
+            if user is None:
+                return Response({
+                    'error': 'Email ou mot de passe incorrect'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+            if not user.is_active:
+                return Response({
+                    'error': 'Votre compte a été désactivé'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            user.last_active = timezone.now()
+            user.save()
+
+            refresh = RefreshToken.for_user(user)
 
             return Response({
                 'user': UserProfileSerializer(user).data,
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             })
-        else:
-            return Response({
-                'error': 'Invalid email or password'
-            }, status=status.HTTP_401_UNAUTHORIZED)
 
+
+# ============================================
+# CLASSE 3: ProfileView (PROFIL)
+# ============================================
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     """
-    Get and Update User Profile
-
-    Flutter sends (GET): /api/accounts/profile/
-    Returns: User data
-
-    Flutter sends (PATCH): /api/accounts/profile/
-    {
-        "username": "new_name",
-        "phone_number": "+237678901234"
-    }
-    Returns: Updated user data
+    Vue pour voir et modifier le profil.
     """
-
     serializer_class = UserUpdateSerializer
-    permission_classes = (permissions.IsAuthenticated,)  # Must be logged in
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get_object(self):
-        """Get the current logged-in user"""
         return self.request.user
 
     def retrieve(self, request, *args, **kwargs):
-        """Get profile - returns full user data"""
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
 
 
+# ============================================
+# CLASSE 4: ChangePasswordView (CHANGER MOT DE PASSE)
+# ============================================
+
 class ChangePasswordView(APIView):
     """
-    Change User Password
-
-    Flutter sends: POST /api/accounts/change-password/
-    {
-        "old_password": "OldPass123",
-        "new_password": "NewSecurePass123",
-        "confirm_new_password": "NewSecurePass123"
-    }
+    Vue pour changer le mot de passe.
     """
-
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
@@ -166,34 +292,31 @@ class ChangePasswordView(APIView):
 
         user = request.user
 
-        # Check old password
         if not user.check_password(serializer.data.get('old_password')):
             return Response({
-                'old_password': 'Wrong password.'
+                'old_password': 'Mot de passe incorrect'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Set new password
         user.set_password(serializer.data.get('new_password'))
         user.save()
 
         return Response({
-            'message': 'Password updated successfully'
+            'message': 'Mot de passe mis à jour avec succès'
         }, status=status.HTTP_200_OK)
 
 
+# ============================================
+# CLASSE 5: UserListView (LISTE DES UTILISATEURS - Admin)
+# ============================================
+
 class UserListView(generics.ListAPIView):
     """
-    List all users (Admin only)
-
-    Flutter sends: GET /api/accounts/users/?role=CITIZEN
-    Returns: List of users
+    Vue pour lister les utilisateurs (Admin uniquement).
     """
-
     serializer_class = UserProfileSerializer
-    permission_classes = (permissions.IsAdminUser,)  # Only admins can see all users
+    permission_classes = (permissions.IsAdminUser,)
 
     def get_queryset(self):
-        """Filter users by role if provided"""
         queryset = User.objects.all()
         role = self.request.query_params.get('role')
         if role:
@@ -201,23 +324,17 @@ class UserListView(generics.ListAPIView):
         return queryset
 
 
+# ============================================
+# CLASSE 6: PointsView (POINTS - Nouveau)
+# ============================================
+
 class PointsView(APIView):
     """
-    View and Manage User Points
-
-    Flutter sends (GET): /api/accounts/points/
-    Returns: Points information
-
-    Flutter sends (POST): /api/accounts/points/redeem/
-    {
-        "points_to_redeem": 100
-    }
+    Vue pour voir et gérer les points.
     """
-
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
-        """Get current points information"""
         user = request.user
         return Response({
             'total_points': user.total_points,
@@ -227,24 +344,23 @@ class PointsView(APIView):
         })
 
     def post(self, request):
-        """Redeem points for money"""
         user = request.user
         points_to_redeem = request.data.get('points_to_redeem', 0)
 
         if points_to_redeem <= 0:
             return Response({
-                'error': 'Must redeem at least 1 point'
+                'error': 'Vous devez échanger au moins 1 point'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         money_earned = user.redeem_points(points_to_redeem)
 
         if money_earned == 0:
             return Response({
-                'error': 'Insufficient points balance'
+                'error': 'Solde de points insuffisant'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({
-            'message': f'Successfully redeemed {points_to_redeem} points for {money_earned} CFA',
+            'message': f'Vous avez échangé {points_to_redeem} points pour {money_earned} CFA',
             'new_balance': user.points_balance,
             'total_earned_cfa': user.money_earned_cfa
         })

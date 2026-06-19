@@ -47,6 +47,10 @@ INSTALLED_APPS = [
     # Our apps - ADD THIS!
     'accounts',  # ⬅️ ADD THIS LINE
     'reports',
+   'ai_engine',
+    'alerts',
+   'interventions',
+   'notifications',
 ]
 
 MIDDLEWARE = [
@@ -132,3 +136,189 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
+
+# netlife_backend/settings.py
+
+# ... autres configurations ...
+
+# ============================================
+# CONFIGURATION DES TEMPLATES
+# ============================================
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],  # Pas besoin de modifier
+        'APP_DIRS': True,  # ⬅️ IMPORTANT: True pour chercher dans les apps
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+# netlife_backend/settings.py
+
+# ============================================
+# CONFIGURATION CORS (Cross-Origin Resource Sharing)
+# ============================================
+
+# ⬅️ AUTORISER TOUTES LES ORIGINES (DÉVELOPPEMENT)
+CORS_ALLOW_ALL_ORIGINS = True  # ✅ PERMET TOUT ! (Pour le développement)
+
+# ⬅️ OU AUTORISER UNE LISTE SPÉCIFIQUE (PRODUCTION)
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",      # Flutter web (dev)
+#     "http://localhost:8080",      # Flutter web (autre port)
+#     "http://127.0.0.1:3000",
+#     "http://127.0.0.1:8080",
+#     "https://netlife-frontend.vercel.app",  # Frontend en production
+#     "https://netlife-backend.herokuapp.com",  # Backend en production
+# ]
+
+# ⬅️ AUTORISER LES CRÉDENTIALS (cookies, tokens)
+CORS_ALLOW_CREDENTIALS = True
+
+# ⬅️ MÉTHODES AUTORISÉES
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# ⬅️ HEADERS AUTORISÉS
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# ⬅️ EXPOSER LES HEADERS (pour le frontend)
+CORS_EXPOSE_HEADERS = [
+    'content-disposition',
+    'content-type',
+    'x-request-id',
+]
+
+# netlife_backend/settings.py
+
+# ============================================
+# CONFIGURATION DES HÔTES AUTORISÉS
+# ============================================
+
+# ⬅️ PERMET TOUS LES HÔTES (DÉVELOPPEMENT)
+ALLOWED_HOSTS = ['*']  # ✅ PERMET TOUT ! (Pour le développement)
+
+# ⬅️ OU HÔTES SPÉCIFIQUES (PRODUCTION)
+# ALLOWED_HOSTS = [
+#     'localhost',
+#     '127.0.0.1',
+#     '0.0.0.0',
+#     'netlife-backend.herokuapp.com',
+#     'api.netlife.com',
+#     '192.168.1.100',  # IP locale pour le réseau local
+# ]
+
+# netlife_backend/settings.py
+
+# ============================================
+# CONFIGURATION DE DJANGO REST FRAMEWORK
+# ============================================
+
+REST_FRAMEWORK = {
+    # ⬅️ AUTHENTIFICATION PAR DÉFAUT (JWT)
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # Pour l'admin
+    ),
+
+    # ⬅️ PERMISSIONS PAR DÉFAUT
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+
+    # ⬅️ FILTRES
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+        'rest_framework.filters.SearchFilter',
+    ),
+
+    # ⬅️ PAGINATION
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+
+    # ⬅️ THROTTLING (Protection contre les attaques)
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',  # 100 requêtes par jour (non authentifié)
+        'user': '1000/day',  # 1000 requêtes par jour (authentifié)
+        'login': '10/hour',  # 10 tentatives de login par heure
+    },
+
+    # ⬅️ SCHÉMA DE RENDU
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',  # Pour l'API
+        'rest_framework.renderers.BrowsableAPIRenderer',  # Pour l'exploration
+    ),
+
+    # ⬅️ PARSEURS
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',  # Pour les fichiers
+    ),
+}
+
+# netlife_backend/settings.py
+
+# ============================================
+# CONFIGURATION JWT (JSON Web Tokens)
+# ============================================
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    # ⬅️ DURÉE DE VIE DU TOKEN
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # 1 jour (pour le développement)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # 7 jours
+
+    # ⬅️ ROTATION DES TOKENS
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+
+    # ⬅️ CHAMPS D'AUTHENTIFICATION
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    # ⬅️ TYPES DE TOKENS
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+
+    # ⬅️ CLAIMS PERSONNALISÉS
+    # 'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+}
+
+
+# Désactiver CSRF pour les API (UNIQUEMENT pour le hackathon)
+CSRF_TRUSTED_ORIGINS = [
+    'http://172.26.194.8:8000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]

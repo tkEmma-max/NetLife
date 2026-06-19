@@ -9,7 +9,7 @@ class AppTheme {
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
       secondary: AppColors.secondary,
-      error: AppColors.danger,
+      error: AppColors.error,
       surface: AppColors.surface,
     ),
     textTheme: const TextTheme(

@@ -10,17 +10,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    # Admin panel
     path('admin/', admin.site.urls),
 
-    # Accounts app (authentication)
-    path('api/accounts/', include('accounts.urls')),
+    # 👇 COMMENTE OU SUPPRIME CES LIGNES
+    # path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    # path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # path('api/schema/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 
-    # ==========================================
-    # REPORTS APP - ADD THIS LINE!
-    # ==========================================
-    # All report URLs will start with /api/reports/
+    path('api/accounts/', include('accounts.urls')),
     path('api/reports/', include('reports.urls')),
+    path('api/ai/', include('ai_engine.urls')),
+    path('api/alerts/', include('alerts.urls')),
+    path('api/interventions/', include('interventions.urls')),
+    path('api/notifications/', include('notifications.urls')),
 ]
 
 # Serve media files in development
