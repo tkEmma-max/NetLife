@@ -1,10 +1,10 @@
-// CARTE INTERACTIVE LIFENET
-// S'adapte à la position de l'utilisateur
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mobile_app/config/app_colors.dart';
+import 'package:mobile_app/widgets/custom_marker.dart';
+import 'package:mobile_app/screens/alert_detail_screen.dart';
+import 'package:mobile_app/widgets/custom_marker.dart';
 
 class IncidentMap extends StatelessWidget {
   final List<Map<String, dynamic>> incidents;
@@ -12,6 +12,7 @@ class IncidentMap extends StatelessWidget {
   final double? latitude;
   final double? longitude;
   final double zoom;
+  final Function(int)? onMarkerTap;
 
   const IncidentMap({
     super.key,
@@ -20,16 +21,14 @@ class IncidentMap extends StatelessWidget {
     this.latitude,
     this.longitude,
     this.zoom = 14,
+    this.onMarkerTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Si on a la position de l'utilisateur, on centre sur elle
-    // Sinon, on centre sur Douala (fallback)
     final centerLat = latitude ?? 4.0511;
     final centerLon = longitude ?? 9.7679;
 
-    // Construire les marqueurs des incidents
     final markers = <Marker>[];
 
     // Marqueur pour la position de l'utilisateur
@@ -68,49 +67,31 @@ class IncidentMap extends StatelessWidget {
       if (lat == null || lon == null) continue;
 
       final gravity = incident['gravity'] ?? 3;
-      Color markerColor;
-
-      if (gravity >= 4) {
-        markerColor = AppColors.danger;
-      } else if (gravity >= 3) {
-        markerColor = AppColors.warning;
-      } else {
-        markerColor = AppColors.success;
-      }
-
-      final type = incident['type'] as String? ?? '?';
-      final label = type.isNotEmpty ? type.substring(0, 1).toUpperCase() : '?';
+      final type = incident['type'] as String? ?? 'other';
+      final alertId = incident['id'] ?? 0;
 
       markers.add(
         Marker(
           point: LatLng(lat, lon),
-          width: 32,
-          height: 32,
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: markerColor.withOpacity(0.9),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: markerColor.withOpacity(0.4),
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          width: 44,
+          height: 44,
+          child: CustomMarker(
+            dangerType: type,
+            gravity: gravity,
+            onTap: () {
+              // Si on a un callback, on l'utilise
+              if (onMarkerTap != null) {
+                onMarkerTap!(alertId as int);
+              } else {
+                // Sinon, navigation directe
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AlertDetailScreen(alertId: alertId as int),
+                  ),
+                );
+              }
+            },
           ),
         ),
       );
@@ -121,7 +102,7 @@ class IncidentMap extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.textTertiary.withOpacity(0.15),
+          color: AppColors.border.withOpacity(0.15),
           width: 1,
         ),
       ),

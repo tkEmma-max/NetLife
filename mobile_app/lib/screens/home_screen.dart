@@ -15,6 +15,8 @@ import 'package:mobile_app/screens/alerts_screen.dart';
 import 'package:mobile_app/screens/notifications_screen.dart';
 import 'package:mobile_app/screens/profile_screen.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:mobile_app/services/geocoding_service.dart';
+import 'package:mobile_app/screens/alert_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Position? _currentPosition;
 
   bool _isLoading = true;
+  String _userAddress = '';
 
   @override
   void initState() {
@@ -50,6 +53,19 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // 1. Charger la position
       _currentPosition = await LocationService.getCurrentLocation();
+
+      // 1.5 Convertir la position en adresse
+      if (_currentPosition != null) {
+        try {
+          _userAddress = await GeocodingService.getAddressFromCoordinates(
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+          );
+        } catch (e) {
+          print('Erreur de geocodage: $e');
+          _userAddress = 'Position non disponible';
+        }
+      }
 
       // 2. Charger le profil utilisateur
       _userProfile = await _apiService.getProfile();
@@ -98,7 +114,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getUserCity() {
-    // Si on a la position, on pourrait faire une reverse geocoding
+    // 1. Priorité à la position GPS convertie en adresse
+    if (_userAddress.isNotEmpty && _userAddress != 'Position non disponible') {
+      return _userAddress;
+    }
+    // 2. Sinon, on utilise la ville du profil (si disponible)
+    if (_userProfile['city'] != null && _userProfile['city'].isNotEmpty) {
+      return _userProfile['city'];
+    }
+    // 3. Fallback
     return 'Cameroun';
   }
 
@@ -364,18 +388,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 12),
                       IncidentMap(
                         incidents: _nearbyAlerts.map((alert) {
+                          final lat = double.tryParse(alert['latitude']?.toString() ?? '') ?? 4.0511;
+                          final lon = double.tryParse(alert['longitude']?.toString() ?? '') ?? 9.7679;
+
+                          int gravity = 3;
+                          final priority = alert['priority']?.toString().toUpperCase() ?? '';
+                          if (priority == 'CRITICAL') gravity = 5;
+                          else if (priority == 'HIGH') gravity = 4;
+                          else if (priority == 'MEDIUM') gravity = 3;
+                          else if (priority == 'LOW') gravity = 2;
+
                           return {
-                            'lat': alert['latitude'] ?? 4.0511,
-                            'lon': alert['longitude'] ?? 9.7679,
-                            'type': alert['danger_type_display'] ?? 'Danger',
-                            'gravity': alert['priority'] == 'CRITICAL' ? 5 : 3,
+                            'id': alert['id'] ?? 0,
+                            'lat': lat,
+                            'lon': lon,
+                            'type': alert['danger_type'] ?? 'other',
+                            'gravity': gravity,
+                            'title': alert['title'] ?? '',
+                            'address': alert['address'] ?? '',
                           };
                         }).toList(),
-                        height: 200,
+                        height: 350,
                         latitude: _currentPosition?.latitude,
                         longitude: _currentPosition?.longitude,
+                        onMarkerTap: (alertId) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AlertDetailScreen(alertId: alertId),
+                            ),
+                          );
+                        },
                       ),
-
                       const SizedBox(height: 28),
 
                       // ============================================
