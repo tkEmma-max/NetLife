@@ -6,11 +6,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # =========================
 # SECURITY
 # =========================
-SECRET_KEY = 'django-insecure-change-me'
-DEBUG = True
+SECRET_KEY = 'django-insecure-change-me-in-production'
+DEBUG = True  # ⚠️ Passer à False en production
 
 ALLOWED_HOSTS = [
-    "*",  # dev (Render prod → mettre domaine exact)
+    "localhost",
+    "127.0.0.1",
+    "netlife-2.onrender.com",  # 🔥 URL Render
+    "*",  # Pour le développement uniquement
 ]
 
 # =========================
@@ -24,13 +27,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # third party
+    # Third party
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
 
-    # apps
+    # Apps NetLife
     'accounts',
     'reports',
     'ai_engine',
@@ -40,17 +43,14 @@ INSTALLED_APPS = [
 ]
 
 # =========================
-# MIDDLEWARE (IMPORTANT ORDER)
+# MIDDLEWARE (ORDRE IMPORTANT)
 # =========================
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # 🔥 MUST BE FIRST
-
+    'corsheaders.middleware.CorsMiddleware',  # 🔥 DOIT ÊTRE EN PREMIER
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-
     'django.middleware.csrf.CsrfViewMiddleware',
-
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -79,7 +79,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'netlife_backend.wsgi.application'
 
 # =========================
-# DATABASE (local sqlite)
+# DATABASE (SQLite pour Render)
 # =========================
 DATABASES = {
     'default': {
@@ -104,10 +104,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # =========================
-# INTERNATIONALIZATION
+# INTERNATIONALISATION
 # =========================
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'fr-fr'
+TIME_ZONE = 'Africa/Douala'
 USE_I18N = True
 USE_TZ = True
 
@@ -115,13 +115,20 @@ USE_TZ = True
 # STATIC FILES
 # =========================
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# =========================
+# MEDIA FILES
+# =========================
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # =========================
-# CORS (FLUTTER + WEB)
+# CORS (POUR FLUTTER + WEB)
 # =========================
-CORS_ALLOW_ALL_ORIGINS = True  # dev only
+CORS_ALLOW_ALL_ORIGINS = True  # 🔥 Pour le développement uniquement
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -144,18 +151,24 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # =========================
+# CSRF
+# =========================
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://netlife-2.onrender.com",  # 🔥 URL Render
+]
+
+# =========================
 # DRF CONFIG
 # =========================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-
-    # 🔥 IMPORTANT: allow login/register without token
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.AllowAny",
     ),
-
     "DEFAULT_FILTER_BACKENDS": (
         "django_filters.rest_framework.DjangoFilterBackend",
     ),
@@ -167,17 +180,31 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
-
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 # =========================
-# CSRF (API mode)
+# LOGGING (optionnel, pour debug)
 # =========================
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
